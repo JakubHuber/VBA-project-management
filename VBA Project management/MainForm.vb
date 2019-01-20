@@ -5,6 +5,7 @@ Imports System.Text.RegularExpressions
 
 Public Class MainForm
     Dim xlApp As Excel.Application
+    Dim VbaKeyNames As String
 
     Private Sub MainForm_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Dim FirstNode As TreeNode
@@ -26,10 +27,18 @@ Public Class MainForm
             ListViewCodes.EndUpdate()
         End If
 
+        'VBA special key names
+        getVBASpecialKeyNames
+
         Me.Top = oWorkingArea.Top
         Me.Left = oWorkingArea.Left
         Me.Height = My.Computer.Screen.WorkingArea.Height
         Me.Width = My.Computer.Screen.WorkingArea.Width / 2
+    End Sub
+
+    Sub getVBASpecialKeyNames()
+        Dim vTemp As String() = My.Resources.VBA_special_key_names.Split(New String() {Environment.NewLine}, StringSplitOptions.None)
+        VbaKeyNames = Join(vTemp, "|")
     End Sub
 
     Sub ListMacros(FolderPath As String)
@@ -101,20 +110,19 @@ Public Class MainForm
     Private Sub ToolStripMenuItemOptions_Click(sender As Object, e As EventArgs) Handles ToolStripMenuItemOptions.Click
         OptionsForm.ShowDialog()
         'TODO: Pole przeszukiwania treeview
-        'TODO: kolorowanie słówek po kliknięciu na 
         'TODO: Zapisywanie zmian w pliku bas?
         'TODO: Kopiowanie snipcoda do aktywnego projektu?
         'TODO: Menu podręczne do kopiowania kodu
     End Sub
 
     Private Sub ListViewCodes_Click(sender As Object, e As EventArgs) Handles ListViewCodes.Click
-        Dim RegexPattern As String = "\bOption|\bDim|\bSub|\bFunction|\bEnd"
+        Dim RegexPattern As String = VbaKeyNames
         Dim TextMatches As MatchCollection
         Dim options As RegexOptions
-
+        Dim vLine As Long
 
         RichTextBoxCodePeek.LoadFile(sender.selecteditems(0).name, RichTextBoxStreamType.PlainText)
-        options = RegexOptions.IgnoreCase Or RegexOptions.Multiline
+        options = RegexOptions.Multiline
 
         TextMatches = Regex.Matches(RichTextBoxCodePeek.Text, RegexPattern, options)
 
@@ -124,6 +132,20 @@ Public Class MainForm
                     .SelectionStart = oMatch.Index
                     .SelectionLength = oMatch.Length
                     .SelectionColor = Color.Blue
+                End With
+            Next
+        End If
+
+        RegexPattern = "'"
+        options = RegexOptions.Multiline
+        TextMatches = Regex.Matches(RichTextBoxCodePeek.Text, RegexPattern, options)
+        If TextMatches.Count > 0 Then
+            For Each oMatch As Match In TextMatches
+                With RichTextBoxCodePeek
+                    .SelectionStart = oMatch.Index
+                    vLine = .GetLineFromCharIndex(oMatch.Index)
+                    .SelectionLength = .GetFirstCharIndexFromLine(vLine + 1) - 1 - .SelectionStart
+                    .SelectionColor = Color.Green
                 End With
             Next
         End If

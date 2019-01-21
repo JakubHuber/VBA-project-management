@@ -1,4 +1,5 @@
 \bPrivate
+\bProperty
 \bFunction
 \bEnd
 \bAddHandler
@@ -69,14 +70,13 @@
 \bError
 \bGet
 \bIf
-\bIn
+\bIn\b
 \bIs
 \bLike
 \bMod
 \bNew
 \bOn
 \bOr
-\bProperty
 \bReadOnly
 \bResume
 \bSet
